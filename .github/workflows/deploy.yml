@@ -1,0 +1,33 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # 公開リポジトリ Nain-Jp-Web でのみ実行する。
+    # ソース管理用 NainJpWebSite は GitHub Pages 未有効のため、ここでは skip させ
+    # 失敗ランを出さない。deploy-public.sh が本ファイルを両リポジトリへ同期する。
+    if: github.repository == 'NainJp/Nain-Jp-Web'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: src
+      - id: deployment
+        uses: actions/deploy-pages@v4
